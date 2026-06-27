@@ -1,0 +1,11 @@
+replicaCount: 2
+image:
+  repository: enterprise-banking-api
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+env:
+  APP_ENV: dev
+  LOG_LEVEL: INFO

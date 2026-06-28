@@ -1,29 +1,47 @@
 name: Banking API CI/CD
+
 on:
   push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-env:
-  IMAGE_NAME: enterprise-banking-api
+    branches:
+      - main
+
 jobs:
   test-build-scan:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Show project structure
+        run: |
+          pwd
+          ls -la
+          ls -la app
+          ls -la tests
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Run tests
-        run: pytest -q
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest -q
+
       - name: Build Docker image
-        run: docker build -t $IMAGE_NAME:${{ github.sha }} .
+        run: docker build -t enterprise-banking-api .
+
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          image-ref: enterprise-banking-api
           format: table
           exit-code: 0
-          severity: CRITICAL,HIGH
+          ignore-unfixed: true
